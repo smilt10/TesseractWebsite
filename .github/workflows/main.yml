@@ -3,7 +3,7 @@ name: Unzip File on Push
 on: 
   push:
     branches:
-      - main  # Change to your branch if different
+      - main  # Change if using a different branch
 
 jobs:
   unzip:
@@ -12,13 +12,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: List All Files in the Repo
+        run: ls -R
+
+      - name: Find ZIP File
+        run: find . -name "tesseract-landing.zip" || echo "ZIP file not found!"
+
       - name: Unzip File
-        run: unzip tesseract-landing.zip -d extracted-files  
+        run: unzip -o $(find . -name 'tesseract-landing.zip') -d extracted-files
+
+      - name: List Extracted Files
+        run: ls -lah extracted-files || echo "No extracted files found"
 
       - name: Commit Extracted Files
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add extracted-files
-          git commit -m "Unzipped files"
-          git push
+          git add extracted-files || echo "No files to add"
+          git commit -m "Unzipped files" || echo "No changes to commit"
+          git push || echo "Push failed"
+        continue-on-error: true
